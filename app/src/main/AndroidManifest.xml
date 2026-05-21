@@ -21,6 +21,16 @@
         android:theme="@style/Theme.MyApplication"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ServeurActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".MonitoringActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ControlActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ClientActivity"
             android:exported="false" />
 

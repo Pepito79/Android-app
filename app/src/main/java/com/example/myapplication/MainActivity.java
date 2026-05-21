@@ -15,6 +15,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Demander les permissions dès le début
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            requestPermissions(new String[]{
+                    android.Manifest.permission.BLUETOOTH_CONNECT,
+                    android.Manifest.permission.BLUETOOTH_SCAN
+            }, 1);
+        }
         // Lier avec la vue XML
         CardView cardClient = findViewById(R.id.cardTelecomande);
         CardView cardServeur = findViewById(R.id.cardServeur);
