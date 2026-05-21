@@ -19,13 +19,21 @@ public class MainActivity extends AppCompatActivity {
         CardView cardClient = findViewById(R.id.cardTelecomande);
         CardView cardServeur = findViewById(R.id.cardServeur);
 
-        // Action lors du click
-        cardClient.setOnClickListener( v -> {
-            Intent intent = new Intent(MainActivity.this, ClientActivity.class);
-            startActivity(intent);
+        // Action lors du click pour choisir le rôle de client
+        cardClient.setOnClickListener(v -> {
+                    Intent intent = new Intent(MainActivity.this, ClientActivity.class);
+                    startActivity(intent);
                 }
 
 
+        );
+
+
+        // Action lors du click pour choisir le rôle de serveur
+        cardServeur.setOnClickListener(v -> {
+                    Intent intent = new Intent(MainActivity.this, ServeurActivity.class);
+                    startActivity(intent);
+                }
         );
     }
 }
