@@ -25,7 +25,7 @@ public class MonitoringActivity extends AppCompatActivity {
     private ConnectedThread btThread;
     private final Handler handler = new Handler();
     // Structure pour stocker la data reçue
-    private Map<String, String> sensorData = new HashMap<>();
+    private Map<String, JSONObject> serverDeviceMap = new HashMap<>();
     private  final String url = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/15";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,10 +45,12 @@ public class MonitoringActivity extends AppCompatActivity {
     }
 
     private void startRepeatingFetch() {
+        // Handler utilisé ici pour échanger data entre thread
         handler.post(new Runnable() {
             @Override
             public void run() {
                 fetchData();
+                // Exrecution chaque 5 seconde en background
                 handler.postDelayed(this, 5000);
             }
         });
@@ -57,22 +59,21 @@ public class MonitoringActivity extends AppCompatActivity {
     private void fetchData() {
         RequestQueue queue = Volley.newRequestQueue(this);
 
-        // On utilise JsonArrayRequest car la racine du message est un crochet "["
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(Request.Method.GET, url, null,
                 response -> {
-                    StringBuilder builder = new StringBuilder();
-
                     try {
-                        // 1. On boucle sur chaque objet de la liste
                         for (int i = 0; i < response.length(); i++) {
                             JSONObject device = response.getJSONObject(i);
+                            String id = device.getString("ID"); // On utilise l'ID comme clé
+                            serverDeviceMap.put(id, device);
+                        }
 
-                            // 2. Extraction des infos
+                        // On construit l'affichage à partir de la Map
+                        StringBuilder builder = new StringBuilder();
+                        for (JSONObject device : serverDeviceMap.values()) {
                             String name = device.getString("NAME");
                             int state = device.getInt("STATE");
-                            String type = device.getString("TYPE");
 
-                            // 3. On prépare l'affichage local (Serveur)
                             builder.append(name).append(" : ")
                                     .append(state == 1 ? "ON" : "OFF")
                                     .append("\n");
@@ -81,8 +82,7 @@ public class MonitoringActivity extends AppCompatActivity {
                         // Mise à jour de l'écran du serveur
                         tvDataDisplay.setText(builder.toString());
 
-                        // 4. ENVOI BLUETOOTH : On envoie le JSON brut au client
-                        // C'est le plus simple car le client pourra aussi le parser
+                        // On envoie  le JSONArray complet au client pour l'afficher
                         if (btThread != null) {
                             btThread.write(response.toString());
                         }
