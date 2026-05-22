@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textBrandModel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PHILLIPS • HUE"
+                android:textColor="#0D6EFD"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textAllCaps="true" />
+
+            <TextView
+                android:id="@+id/textDeviceName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lumière salon"
+                android:textColor="#1A1D20"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginTop="2dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/textExtraInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Autonomy: 66%"
+                    android:textColor="#6C757D"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAction"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="85dp"
+            android:layout_height="wrap_content"
+            android:text="ON"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            app:backgroundTint="#28A745"
+            app:cornerRadius="20dp" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
