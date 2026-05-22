@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
 
         );
 
-
         // Action lors du click pour choisir le rôle de serveur
         cardServeur.setOnClickListener(v -> {
                     Intent intent = new Intent(MainActivity.this, ServeurActivity.class);

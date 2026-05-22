@@ -30,10 +30,14 @@ public class ServeurActivity extends AppCompatActivity {
         acceptThread.start();
     }
 
+
+    private void fetchDataFromSchool () {}
     private void manageConnectedSocket(BluetoothSocket socket) {
 
         // On sauvegarde le socket
         globalSocket = socket;
+        ConnectedThread myConnectedThread = new ConnectedThread(socket);
+        myConnectedThread.start();
         runOnUiThread(() -> {
             Intent intent = new Intent(ServeurActivity.this , MonitoringActivity.class);
             startActivity(intent);
