@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public class ClientActivity extends AppCompatActivity {
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothAdapter bluetoothAdapter; // Mieux comprendre a quoi sert l'adaptater
     public static BluetoothSocket globalSocket;
     @Override
     protected void onCreate(Bundle savedInstanceState) {

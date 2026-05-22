@@ -46,15 +46,17 @@ public class ControlActivity extends AppCompatActivity {
                 int bytes;
                 try {
                     InputStream in = ClientActivity.globalSocket.getInputStream();
+                    // Revoir condition boucle
                     while (!Thread.currentThread().isInterrupted()) {
                         bytes = in.read(bytesBuffer);
                         if (bytes > 0) {
                             String partialData = new String(bytesBuffer, 0, bytes);
+                            // Revoir stringBuilder utilité
                             jsonBuffer.append(partialData);
 
                             String currentContent = jsonBuffer.toString().trim();
 
-                            // On vérifie si on a reçu le début '[' et la fin ']'
+                            // On vérifie si on a tout reçu
                             if (currentContent.startsWith("[") && currentContent.endsWith("]")) {
                                 final String finalJson = currentContent;
                                 runOnUiThread(() -> {
@@ -105,6 +107,8 @@ public class ControlActivity extends AppCompatActivity {
                 btn.setText(state == 1 ? "ON" : "OFF");
                 btn.setBackgroundColor(state == 1 ? Color.parseColor("#B0BEC5") : Color.LTGRAY);
 
+
+                // [CHERIF] Ajouter ici la logique de POST pour
                 btn.setOnClickListener(v -> {
                     if (connectedThread != null) {
                         connectedThread.write("TOGGLE:" + id + ":" + (state == 1 ? "OFF" : "ON"));

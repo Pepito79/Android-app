@@ -31,7 +31,6 @@ public class ServeurActivity extends AppCompatActivity {
     }
 
 
-    private void fetchDataFromSchool () {}
     private void manageConnectedSocket(BluetoothSocket socket) {
 
         // On sauvegarde le socket
