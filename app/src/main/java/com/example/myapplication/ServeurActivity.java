@@ -33,10 +33,10 @@ public class ServeurActivity extends AppCompatActivity {
 
     private void manageConnectedSocket(BluetoothSocket socket) {
 
-        // On sauvegarde le socket
+        // On sauvegarde le socket et on affiche l'autre écran
         globalSocket = socket;
-        ConnectedThread myConnectedThread = new ConnectedThread(socket);
-        myConnectedThread.start();
+//        ConnectedThread myConnectedThread = new ConnectedThread(socket);
+//        myConnectedThread.start();
         runOnUiThread(() -> {
             Intent intent = new Intent(ServeurActivity.this , MonitoringActivity.class);
             startActivity(intent);
@@ -44,7 +44,7 @@ public class ServeurActivity extends AppCompatActivity {
     }
 
 
-    // Création d'un thread pour ne pas bloquer l'UI lors de l'attente de connextion
+    // Création d'un thread pour ne pas bloquer l'UI lors de l'attente de connexion
     public class AcceptThread extends Thread {
         // Socket serveur qui permettera d'écouter les connexions entrantes
         private final BluetoothServerSocket serverSocket;
@@ -53,6 +53,7 @@ public class ServeurActivity extends AppCompatActivity {
             try {
                 // L'adapter permet d'obtenir le ServerSocket
                 BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+                // Ouverture du serveur socket
                 tmp = btAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
             } catch (IOException e) {
                 Log.e("BT_SERVER", "Erreur lors de l'ouverture du serveur", e);

@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -56,7 +57,15 @@ public class ControlActivity extends AppCompatActivity {
 
                             String currentContent = jsonBuffer.toString().trim();
 
-                            // On vérifie si on a tout reçu
+                            // Cas 1 : Update réussi par le serveur
+                            if (currentContent.contains("CONFIRM:UPDATE_SUCCESS")) {
+                                runOnUiThread(() -> {
+                                    Toast.makeText(ControlActivity.this, "Mise à jour réussie !", Toast.LENGTH_SHORT).show();
+                                });
+                                jsonBuffer.setLength(0); // On vide le buffer
+                            }
+
+                            // Cas 2 réception du JSON complet
                             if (currentContent.startsWith("[") && currentContent.endsWith("]")) {
                                 final String finalJson = currentContent;
                                 runOnUiThread(() -> {
@@ -76,13 +85,15 @@ public class ControlActivity extends AppCompatActivity {
     }
     private void updateMapAndUI(String jsonData) {
         try {
-            // On tente de parser et de remplir la Map d'abord
             JSONArray array = new JSONArray(jsonData);
+
+            // On vide la Map pour s'assurer d'avoir les données les plus fraîches de l'API
+            deviceMap.clear();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject obj = array.getJSONObject(i);
                 deviceMap.put(obj.getString("ID"), obj);
             }
-            // Mise à jour de l'affichage
+
             container.removeAllViews();
             LayoutInflater inflater = LayoutInflater.from(this);
 
@@ -104,21 +115,45 @@ public class ControlActivity extends AppCompatActivity {
                 int state = obj.getInt("STATE");
                 String id = entry.getKey();
 
+                // L'UI se met à jour ici selon le "state" reçu du serveur
                 btn.setText(state == 1 ? "ON" : "OFF");
-                btn.setBackgroundColor(state == 1 ? Color.parseColor("#B0BEC5") : Color.LTGRAY);
+                btn.setBackgroundColor(state == 1 ? Color.parseColor("#4CAF50") : Color.LTGRAY); // Vert si ON
 
-
-                // [CHERIF] Ajouter ici la logique de POST pour
                 btn.setOnClickListener(v -> {
                     if (connectedThread != null) {
-                        connectedThread.write("TOGGLE:" + id + ":" + (state == 1 ? "OFF" : "ON"));
+                        // On envoie l'ordre inverse au serveur
+                        String targetState = (state == 1) ? "OFF" : "ON";
+                        connectedThread.write("TOGGLE:" + id + ":" + targetState);
+
+                        // Optionnel : Désactiver le bouton temporairement pour éviter le multi-clic
+                        btn.setEnabled(false);
+                        btn.setText("...");
                     }
                 });
 
                 container.addView(deviceView);
             }
         } catch (JSONException e) {
-            Log.e("BT_CLIENT", "Erreur JSON ignorée" + e.getMessage());
+            Log.e("BT_CLIENT", "Erreur JSON : " + e.getMessage());
         }
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (connectedThread != null) {
+            connectedThread.interrupt();
+        }
+        // On ferme aussi le connexion bt pour eviter d'utiliser des ressources
+        try {
+            if (ClientActivity.globalSocket != null) {
+                ClientActivity.globalSocket.close();
+            }
+        } catch (IOException e) {
+            Log.e("BT_CLIENT", "Erreur fermeture socket");
+        }
+
+        Log.d("BT_CLIENT", "Nettoyage ControlActivity terminé");
+    }
+
+
 }

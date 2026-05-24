@@ -12,13 +12,22 @@ public class ConnectedThread extends Thread {
     private final InputStream inStream;
     private final OutputStream outStream;
 
+    // Référence vers l'activité serveur (optionnelle)
+    private MonitoringActivity serverActivity;
+
+    // Constructeur pour le Client (sans activité serveur)
     public ConnectedThread(BluetoothSocket s) {
-        socket = s;
+        this(s, null);
+    }
+
+    // Constructeur pour le Serveur (avec référence à MonitoringActivity)
+    public ConnectedThread(BluetoothSocket s, MonitoringActivity activity) {
+        this.socket = s;
+        this.serverActivity = activity;
         InputStream tmpIn = null;
         OutputStream tmpOut = null;
 
         try {
-            // On récupère les flux d'entrée et de sortie du socket
             tmpIn = socket.getInputStream();
             tmpOut = socket.getOutputStream();
         } catch (IOException e) {
@@ -38,9 +47,15 @@ public class ConnectedThread extends Thread {
             try {
                 // Lecture des données entrantes (méthode bloquante)
                 bytes = inStream.read(buffer);
-                String incomingMessage = new String(buffer, 0, bytes);
+                if (bytes > 0) {
+                    String incomingMessage = new String(buffer, 0, bytes).trim();
+                    Log.d("BT_CONNECTED", "Message reçu : " + incomingMessage);
 
-                Log.d("BT_CONNECTED", "Message reçu : " + incomingMessage);
+                    // Si on est sur le serveur et qu'on reçoit un TOGGLE
+                    if (serverActivity != null && incomingMessage.startsWith("TOGGLE:")) {
+                        serverActivity.handleClientAction(incomingMessage);
+                    }
+                }
 
             } catch (IOException e) {
                 Log.e("BT_CONNECTED", "Connexion perdue", e);
@@ -51,9 +66,12 @@ public class ConnectedThread extends Thread {
 
     // Méthode pour envoyer des données au partenaire distant
     public void write(String message) {
-        byte[] bytes = message.getBytes();
+        // On ajoute un caractère de fin pour aider le buffer du destinataire
+        String messageWithEnding = message.endsWith("\n") ? message : message + "\n";
+        byte[] bytes = messageWithEnding.getBytes();
         try {
             outStream.write(bytes);
+            outStream.flush(); // On force l'envoi
         } catch (IOException e) {
             Log.e("BT_CONNECTED", "Erreur lors de l'envoi", e);
         }

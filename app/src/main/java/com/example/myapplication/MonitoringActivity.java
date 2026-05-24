@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
@@ -36,16 +37,55 @@ public class MonitoringActivity extends AppCompatActivity {
 
         // On récupère le socket bluetooth
         if(ServeurActivity.globalSocket != null) {
-            btThread = new ConnectedThread(ServeurActivity.globalSocket);
+            btThread = new ConnectedThread(ServeurActivity.globalSocket,this);
             btThread.start();
-            // Boucle pour rafraichir en envoyer
             startRepeatingFetch();
 
         }
     }
 
+    /**
+     * Reçoit l'ordre du client (via ConnectedThread) et lance le POST
+     */
+    public void handleClientAction(String command) {
+        String[] parts = command.split(":");
+        if (parts.length == 3) {
+            String deviceId = parts[1];
+            String targetState = parts[2].equals("ON") ? "1" : "0";
+
+            Log.d("BT_SERVER", "Commande reçue : " + command);
+            updateDeviceOnAPI(deviceId, targetState);
+        }
+    }
+
+    /**
+     * Envoie la modification au serveur
+     */
+    private void updateDeviceOnAPI(String id, String state) {
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest postRequest = new StringRequest(Request.Method.POST, url,
+                response -> {
+                    Log.d("VOLLEY_POST", "Succès : " + response);
+                    // On rafraîchit immédiatement pour synchroniser serveur et client
+                    fetchData();
+                },
+                error -> Log.e("VOLLEY_POST", "Erreur : " + error.getMessage())
+        )
+        {
+            @Override
+            protected Map<String, String> getParams() {
+                Map<String, String> params = new HashMap<>();
+                params.put("ID", id);
+                params.put("STATE", state);
+                return params;
+            }
+        };
+        queue.add(postRequest);
+    }
+
     private void startRepeatingFetch() {
-        // Handler utilisé ici pour échanger data entre thread
+        // Handler utilisé ici pour échanger data entre thread + répéter chaque 5 secondes
         handler.post(new Runnable() {
             @Override
             public void run() {
@@ -95,5 +135,14 @@ public class MonitoringActivity extends AppCompatActivity {
         );
 
         queue.add(jsonArrayRequest);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        if (btThread != null) {
+            btThread.interrupt();
+        }
     }
 }
