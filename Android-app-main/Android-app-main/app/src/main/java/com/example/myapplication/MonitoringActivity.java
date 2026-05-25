@@ -41,6 +41,11 @@ public class MonitoringActivity extends AppCompatActivity {
     //Fil de communication bleuthooth
     private BluetoothCommunicationThread btThread;
 
+    /**
+     * Initialise l'interface de monitoring .
+     * Configure le Handler Bluetooth pour intercepter les commandes distantes et
+     * prepare la boucle de refresh.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +93,10 @@ public class MonitoringActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Traite la reponse de l'API : met a jour l'affichage  synchronise
+     * immediatement le client distant en lui envoyant le flux JSON par Bluetooth.
+     */
     private Response.Listener<JSONArray> requestSuccessListener() {
         return response -> {
             Log.d(TAG, response.toString());
@@ -127,6 +136,10 @@ public class MonitoringActivity extends AppCompatActivity {
         return error -> Log.e(TAG, "Erreur Volley : " + error.getMessage());
     }
 
+    /**
+     * Interroge l'API REST pour obtenir l'etat actuel des peripheriques.
+     * Vide le conteneur visuel et declenche une requete Volley asynchrone.
+     */
     private void refreshDevices() {
         if (deviceContainer == null) return;
         deviceContainer.removeAllViews(); // vide la liste des appareils
@@ -141,7 +154,10 @@ public class MonitoringActivity extends AppCompatActivity {
         queue.add(request); //on ajoute la requete a la liste
     }
 
-    // Requête POST exécutée par le Serveur suite à un ordre du Client
+    /**
+     * Transmet une commande d'action (ON/OFF) a l'API .
+     * @param deviceId L'identifiant unique de l'appareil a controler.
+     */
     private void sendPostRequest(int deviceId) {
         String postUrl = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/";
         RequestQueue queue = Volley.newRequestQueue(this);
@@ -173,6 +189,11 @@ public class MonitoringActivity extends AppCompatActivity {
         queue.add(sr);
     }
 
+    /**
+     * Genere dynamiquement un composant graphique pour un appareil.
+     * Note : Le bouton est desactive (setEnabled(false)) sur le serveur car seul
+     * le client a le droit de piloter la maison dans cette architecture.
+     */
     public RelativeLayout createDeviceView(String name, String info, String donne, boolean on) {
         RelativeLayout layout = new RelativeLayout(this);
         layout.setPadding(0, 10, 0, 10);
@@ -219,13 +240,20 @@ public class MonitoringActivity extends AppCompatActivity {
         return layout;
     }
 
-    //Quand on quitte l'ecran ca met en pause le rafraichissement
+    /**
+     * Arrete le rafraichissement automatique lorsque l'activite passe en arriere-plan.
+     * Permet d'economiser la batterie et les ressources reseau.
+     */
     @Override
     protected void onPause() {
         super.onPause();
         refreshHandler.removeCallbacks(runnableCode);
     }
 
+    /**
+     * Relance le cycle de rafraichissement des donnees des que l'utilisateur
+     * revient sur cet écran.
+     */
     @Override
     protected void onResume() {
         super.onResume();

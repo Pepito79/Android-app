@@ -16,11 +16,17 @@ import java.util.UUID;
 
 public class ServeurActivity extends AppCompatActivity {
 
-    //On Definiti de l'ID qui sera utilisé par le client pour se connecter au serveur
+    // Identifiant unique (UUID) identique a celui du client pour permettre la liaison
     private  static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     //Un nom spécifique pour le serveur
     private static  final String NAME = "IoTCommanderServer";
+    // Socket statique pour maintenir la connexion entre les activites
     public static BluetoothSocket globalSocket;
+
+    /**
+     * Initialise l'activite et lance le thread d'ecoute du serveur.
+     * Affiche l'ecran d'attente (activity_server_waiting).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +37,11 @@ public class ServeurActivity extends AppCompatActivity {
         acceptThread.start();
     }
 
+    /**
+     * Gere le passage du mode "Attente" au mode "Connecte".
+     * Initialise le flux de communication et bascule vers l'ecran de Monitoring.
+     * @param socket Le socket Bluetooth recu lors de la connexion du client.
+     */
     private void manageConnectedSocket(BluetoothSocket socket) {
         // On sauvegarde le socket
         globalSocket = socket;
@@ -50,10 +61,17 @@ public class ServeurActivity extends AppCompatActivity {
 
 
 
-    // Création d'un thread pour ne pas bloquer l'UI lors de l'attente de connextion avant que la connection e soit etablis
+    /**
+     * Thread dedie a l'ecoute des connexions entrantes.
+     * Le serveur "bloque" sur la methode accept() jusqu'a ce qu'un client se connecte.
+     */
     public class AcceptThread extends Thread {
         // Socket serveur qui permettera d'écouter les connexions entrantes
         private final BluetoothServerSocket serverSocket;
+
+        /**
+         * Constructeur : Initialise le BluetoothServerSocket en utilisant le protocole RFCOMM.
+         */
         public AcceptThread() {
             BluetoothServerSocket tmp = null;
             try {
@@ -65,6 +83,11 @@ public class ServeurActivity extends AppCompatActivity {
             }
             serverSocket = tmp;
         }
+
+        /**
+         * Boucle principale du thread. Attend une connexion client.
+         * Une fois la connexion etablie, ferme le serveur pour ne plus accepter d'autres clients.
+         */
         @Override
         public void run () {
             BluetoothSocket socket = null ;

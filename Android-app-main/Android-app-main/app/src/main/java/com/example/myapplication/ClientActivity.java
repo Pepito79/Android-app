@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 // Pas besoin de redemander la permission pour les appareils bluetooth
+// SuprressLint pour éviter d'avoir le warning
 @SuppressLint("MissingPermission")
 public class ClientActivity extends AppCompatActivity {
 
@@ -23,14 +24,19 @@ public class ClientActivity extends AppCompatActivity {
     private BluetoothAdapter bluetoothAdapter;
     public static BluetoothSocket globalSocket;
 
+    /**
+     * Initialise l'activite et lance la recherche du serveur Bluetooth.
+     * Utilise le BluetoothAdapter pour filtrer les appareils deja appaires (Bonded Devices).
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client_waiting);
 
+        // L'adapter gère l'accès au matériel Bluetooth, la liste des appareils appairés
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        // On recherche du serveur dans les appareils déjà appairés (paired devices)
+        // Recherche du serveur dans les appareils déjà appairés (paired devices)
         BluetoothDevice serverDevice = null;
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
 
@@ -38,7 +44,8 @@ public class ClientActivity extends AppCompatActivity {
             for (BluetoothDevice device : pairedDevices) {
                 // On cherche l'appareil avec ce nom
                 if ("IoTCommanderServer".equals(device.getName())) {
-                    serverDevice = device;//on le sauvegarde
+                    //On le sauvegarde
+                    serverDevice = device;
                     break;
                 }
             }
@@ -49,47 +56,64 @@ public class ClientActivity extends AppCompatActivity {
             ConnectionThread connectThread = new ConnectionThread(serverDevice);
             connectThread.start();
         } else {
+            // Affichage d'un toast en bas  pour l'experience client
             Toast.makeText(this, "Serveur introuvable. Avez-vous appairé les téléphones ?", Toast.LENGTH_LONG).show();
         }
     }
 
+    /**
+     * Transitionne vers l'etat connecte.
+     * Initialise le Singleton de communication et bascule l'affichage vers ControlActivity.
+     * @param socket Le socket Bluetooth etabli et pret a l'emploi.
+     */
     private void manageConnectedSocket(BluetoothSocket socket) {
-        // on save le socket en tant que variable global pour pouvoir le reutiliser après
+        // On sauvegarde le socket en tant que variable global pour pouvoir le reutiliser après
         globalSocket = socket;
 
-        //On crée un thread qui va s'executer en arrière-plan pour ne pas bloquer l'UI on donne a ce thread le socket pour qu
-        //etablir le tunel avec le serveur et un handler pour l'instant null pour permettre la communication entre ce thread et controlActivity
+        //On crée un thread qui va s'executer en arrière-plan pour ne pas bloquer l'UI
         BluetoothCommunicationThread commThread = BluetoothCommunicationThread.getInstance(socket, null);
         commThread.start();
 
         runOnUiThread(() -> {
-            // La connection est établis donc on passe a ControlActivity pour l'affichage des appareils
+            // La connection est établie donc on passe a ControlActivity pour l'affichage des appareils
             Intent intent = new Intent(this, ControlActivity.class);
             startActivity(intent);
-            finish(); // On ferme l'activité actuelle
+            // On termine l'activité actuelle
+            finish();
         });
     }
 
-    // Thread de connexion (en arrière-plan pour ne pas bloquer l'écran) pendant la connection ble après il se ferme
+    /**
+     * Thread dedie a la tentative de connexion initiale.
+     * Effectue l'operation bloquante socket.connect() en dehors du thread principal (UI Thread).
+     */
     public class ConnectionThread extends Thread {
         private final BluetoothSocket socket;
-
+        /**
+         * Constructeur du thread de connexion.
+         * Cree le socket RFCOMM en utilisant l'UUID définit
+         * @param device Le peripherique Bluetooth cible.
+         */
         public ConnectionThread(BluetoothDevice device) {
             BluetoothSocket tmp = null;
             try {
+                // Prépare le canal de communication (Socket) avec l'identifiant unique (UUID) du serveur
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
             } catch (IOException e) {
                 Log.e("BT_CLIENT", "Erreur de création du socket", e);
             }
             socket = tmp;
         }
-
+        /**
+         * Execution du thread : arrete la decouverte (Discovery) pour maximiser
+         * les performances et tente la connexion physique.
+         */
         public void run() {
-            //On arrete de rechercher encore des appareils
+            //On arrete de rechercher des appareils
             bluetoothAdapter.cancelDiscovery();
-
             try {
-                socket.connect(); // Le code se bloque ici en attendant que le serveur décroche
+                // Le code se bloque ici en attendant que le serveur décroche
+                socket.connect();
             } catch (IOException e) {
                 try {
                     socket.close();
@@ -99,7 +123,7 @@ public class ClientActivity extends AppCompatActivity {
                 return;
             }
 
-            // Si on arrive ici, la connexion a réussi !
+            // On laisse cette fonction s'occuper du reste
             manageConnectedSocket(socket);
         }
     }

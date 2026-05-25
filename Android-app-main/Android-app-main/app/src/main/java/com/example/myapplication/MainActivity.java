@@ -7,26 +7,30 @@ import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
-
+/**
+ * Point d'entree de l'application.
+ * Gere l'affichage du menu principal, la demande de permissions Bluetooth
+ * et la navigation vers les roles Client/Serveur.
+ */
 public class MainActivity extends AppCompatActivity {
-
+    // Écran principal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // A partir de android 12 il faut une autorisation pour que l'application puisse scanner les appareils bluetooth
+        // Autorisation pour que l'application puisse scanner les appareils bluetooth
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             requestPermissions(new String[]{
                     android.Manifest.permission.BLUETOOTH_CONNECT,
                     android.Manifest.permission.BLUETOOTH_SCAN
             }, 1);
         }
-        // Lier avec la vue XML quand tu clique sur telecommande ca ratache ton action a cardClient
+        // Lier avec la vue XML lors du click sur telecommande cela ratache l'action au composant
         CardView cardClient = findViewById(R.id.cardTelecomande);
         CardView cardServeur = findViewById(R.id.cardServeur);
 
-        // Le clique permet d'ouvrir directement ClientActivity
+        // Le click permet de basculer sur l'activité ClienActivity
         cardClient.setOnClickListener(v -> {
                     Intent intent = new Intent(MainActivity.this, ClientActivity.class);
                     startActivity(intent);
@@ -35,8 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         );
 
-
-        // Le clique permet d'ouvrir directement ServeurActivity
+        // Le click permet de basculer sur le ServeurActivity
         cardServeur.setOnClickListener(v -> {
                     Intent intent = new Intent(MainActivity.this, ServeurActivity.class);
                     startActivity(intent);

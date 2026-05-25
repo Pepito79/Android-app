@@ -19,6 +19,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+
 public class ControlActivity extends AppCompatActivity {
 
     private LinearLayout controlContainer;
@@ -26,31 +28,33 @@ public class ControlActivity extends AppCompatActivity {
     private static final String TAG = "ControlActivity";
     private StringBuilder jsonBuilder = new StringBuilder();
 
+    /**
+     * Initialise l'interface de controle et configure le recepteur de messages.
+     * Recupere l'instance unique du thread de communication et lui injecte un nouveau Handler.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_control);
 
         controlContainer = findViewById(R.id.controlContainer);
-
-        // TA LOGIQUE ROBUSTE DE RÉCEPTION
         Handler btHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 if (msg.what == BluetoothCommunicationThread.MESSAGE_READ) {
                     byte[] readBuf = (byte[]) msg.obj;
+                    //msg.arg1 contient le nombre d'octets réellement reçus pour ne lire que la partie utile du buffer
                     String chun = new String(readBuf, 0, msg.arg1);
-
                     jsonBuilder.append(chun);
                     String currentText = jsonBuilder.toString().trim();
 
-                    //Si le message ne commence pas par '[', on nettoie tout pour eviter la fragmentation
+                    //Si le message ne commence pas par '[', on nettoie tout
                     if (!currentText.isEmpty() && !currentText.startsWith("[")) {
                         jsonBuilder.setLength(0);
                         return;
                     }
 
-                    //On ne tente de parser que si on voit la fin du tableau on doit voir ]en fin
+                    //On ne tente de parser que si on voit ] à la fin
                     if (currentText.endsWith("]")) {
                         try {
                             // On vérifie si c'est un JSON valide
@@ -65,7 +69,6 @@ public class ControlActivity extends AppCompatActivity {
                 }
             }
         };
-        //pareil on lui envoie le handler
         btThread = BluetoothCommunicationThread.getInstance();
         if (btThread != null) {
             btThread.setHandler(btHandler);
@@ -74,7 +77,12 @@ public class ControlActivity extends AppCompatActivity {
         }
     }
 
-    // LA LOGIQUE D'AFFICHAGE DE TON BINÔME INTÉGRÉE
+    /**
+     * Transforme une chaine JSON en composants graphiques.
+     * Nettoie le conteneur et utilise un LayoutInflater pour generer dynamiquement
+     * une vue pour chaque appareil connecte.
+     * @param jsonString La chaine de caracteres au format JSONArray.
+     */
     private void updateUI(String jsonString) {
         try {
             JSONArray devices = new JSONArray(jsonString);
@@ -129,5 +137,23 @@ public class ControlActivity extends AppCompatActivity {
         } catch (JSONException e) {
             Log.e(TAG, "Erreur UI : " + e.getMessage());
         }
+    }
+
+    /**
+     * Gere la destruction de l'activite.
+     * Ferme proprement le socket Bluetooth pour liberer les ressources du telephone.
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            // Fermeture du socket global
+            if (ClientActivity.globalSocket != null) {
+                ClientActivity.globalSocket.close();
+            }
+        } catch (IOException e) {
+            Log.e("BT_CLIENT", "Erreur lors de la fermeture du socket");
+        }
+        Log.d("BT_CLIENT", "Nettoyage ControlActivity terminé");
     }
 }
