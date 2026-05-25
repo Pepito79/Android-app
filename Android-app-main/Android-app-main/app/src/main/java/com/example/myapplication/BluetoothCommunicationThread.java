@@ -37,7 +37,7 @@ public class BluetoothCommunicationThread extends Thread {
 
     /**
      * Cree ou recupere l'instance unique du thread de communication.
-     * Le mot-cle synchronized garantit qu'un seul thread cree l'objet (Thread Safety).
+     * Le mot-cle synchronized garantit qu'un seul thread cree l'objet .
      * @return L'instance unique de BluetoothCommunicationThread.
      */
     public static synchronized BluetoothCommunicationThread getInstance(BluetoothSocket socket, Handler handler) {
@@ -74,7 +74,7 @@ public class BluetoothCommunicationThread extends Thread {
                 //On se met en pause et on attend
                 bytes = mmInStream.read(buffer);
                 if (mHandler != null) {
-                    //on envoie une COPIE du buffer pour éviter les collisions
+                    //on envoie une copie du buffer
                     byte[] copy = Arrays.copyOf(buffer, bytes);
                     mHandler.obtainMessage(MESSAGE_READ, bytes, -1, copy).sendToTarget();
                 }
@@ -85,7 +85,7 @@ public class BluetoothCommunicationThread extends Thread {
     }
 
     /**
-     * Envoie des donnees brutes (octets) vers l'appareil distant.
+     * Envoie des donnees brutes au client.
      * @param bytes Le tableau d'octets a transmettre via le flux de sortie.
      */
     public void write(byte[] bytes) {

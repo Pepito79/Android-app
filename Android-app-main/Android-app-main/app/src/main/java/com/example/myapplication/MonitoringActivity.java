@@ -26,6 +26,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -159,7 +160,7 @@ public class MonitoringActivity extends AppCompatActivity {
      * @param deviceId L'identifiant unique de l'appareil a controler.
      */
     private void sendPostRequest(int deviceId) {
-        String postUrl = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/";
+        String postUrl = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/35";
         RequestQueue queue = Volley.newRequestQueue(this);
 
         StringRequest sr = new StringRequest(Request.Method.POST, postUrl,
@@ -258,5 +259,28 @@ public class MonitoringActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         refreshHandler.post(runnableCode);
+    }
+
+    /**
+     * Gere la destruction de l'activite.
+     * Stoppe definitivement les requetes automatiques et ferme le socket Bluetooth
+     * pour liberer les ressources et permettre une future reconnexion.
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // On s'assure que le rafraichissement est bien arrete
+        refreshHandler.removeCallbacks(runnableCode);
+
+        //On ferme le socket Bluetooth global du serveur
+        try {
+            if (ServeurActivity.globalSocket != null) {
+                ServeurActivity.globalSocket.close();
+                Log.d(TAG, "Socket serveur ferme avec succes");
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Erreur lors de la fermeture du socket serveur", e);
+        }
     }
 }
