@@ -55,7 +55,7 @@ public class MonitoringActivity extends AppCompatActivity {
 
         deviceContainer = findViewById(R.id.lla);
 
-        // 1. Initialiser le Handler Bluetooth pour recevoir les requêtes du Client (
+        // Initialiser le Handler Bluetooth pour recevoir les requêtes du Client (
         Handler btHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
@@ -76,13 +76,13 @@ public class MonitoringActivity extends AppCompatActivity {
             }
         };
 
-        // 2. Lier le thread Bluetooth à cette activité avant le handler etait nul on lui donne le vrai handler pour qu'il sache ou envoyer
+        // Lier le thread Bluetooth à cette activité avant le handler etait nul on lui donne le vrai handler pour qu'il sache ou envoyer
         btThread = BluetoothCommunicationThread.getInstance();
         if (btThread != null) {
             btThread.setHandler(btHandler);
         }
 
-        // 3. Tâche de rafraîchissement régulier (Volley)
+        // Tâche de rafraîchissement régulier (Volley)
         runnableCode = new Runnable() {
             @Override
             public void run() {
