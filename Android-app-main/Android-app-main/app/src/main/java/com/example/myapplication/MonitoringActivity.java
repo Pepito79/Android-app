@@ -33,7 +33,7 @@ import java.util.Map;
 public class MonitoringActivity extends AppCompatActivity {
 
     private LinearLayout deviceContainer;
-    private static final String URL = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/1";
+    private static final String URL = "http://happyresto.enseeiht.fr/smartHouse/api/v1/devices/31";
     private static final String TAG = "MonitoringActivity";
 
     //Utilisé pour le rafraichissement de la page
